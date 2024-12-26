@@ -9,3 +9,4 @@ import org.springframework.context.annotation.Configuration
 class LocationMappingConfig {
     var states: List<State> = listOf()
 }
+
