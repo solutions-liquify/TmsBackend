@@ -1,0 +1,26 @@
+locationmapping:
+  states:
+    - name: "State1"
+      districts:
+        - name: "District1"
+          talukas:
+            - name: "Taluka1"
+              cities:
+                - "City1"
+                - "City2"
+            - name: "Taluka2"
+              cities:
+                - "City3"
+        - name: "District2"
+          talukas:
+            - name: "Taluka3"
+              cities:
+                - "City4"
+                - "City5"
+    - name: "State2"
+      districts:
+        - name: "District3"
+          talukas:
+            - name: "Taluka4"
+              cities:
+                - "City6"
