@@ -47,6 +47,10 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId> <!-- Default logging with SLF4J and Logback -->
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

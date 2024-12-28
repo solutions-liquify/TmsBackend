@@ -5,7 +5,7 @@ data class Employee(
     val id: String?,
     val name: String,
     val email: String,
-    val contactNumber: String,
+    val contactNumber: String?,
     val role: String,
     val createdAt: Long?
 )
@@ -14,7 +14,7 @@ data class EmployeeDTO(
     val id: String,
     val name: String,
     val email: String,
-    val contactNumber: String,
+    val contactNumber: String?,
     val role: String,
     val createdAt: Long
 ) {
@@ -29,3 +29,11 @@ data class EmployeeDTO(
         )
     }
 }
+
+
+data class ListEmployeesInput(
+    val search: String = "",
+    val roles: List<String> = emptyList(),
+    val page: Int = 1,
+    val size: Int = 10
+)

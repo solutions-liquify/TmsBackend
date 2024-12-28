@@ -1,6 +1,7 @@
 package app.tmsbackend.controller
 
 import app.tmsbackend.model.Employee
+import app.tmsbackend.model.ListEmployeesInput
 import app.tmsbackend.service.EmployeeService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -12,7 +13,7 @@ class EmployeeController(
     private val employeeService: EmployeeService
 ) {
 
-    @PostMapping
+    @PostMapping("/create")
     fun createEmployee(@RequestBody employee: Employee): ResponseEntity<Employee> {
         val createdEmployee = employeeService.createEmployee(employee)
         return ResponseEntity.ok(createdEmployee)
@@ -30,14 +31,16 @@ class EmployeeController(
         return ResponseEntity.ok(employee)
     }
 
-    @GetMapping
+    @PostMapping("/list")
     fun listEmployees(
-        @RequestParam search: String,
-        @RequestParam roles: List<String>,
-        @RequestParam page: Int,
-        @RequestParam size: Int
+        @RequestBody listEmployeesInput: ListEmployeesInput
     ): ResponseEntity<List<Employee>> {
-        val employees = employeeService.listEmployees(search, roles, page, size)
+        val employees = employeeService.listEmployees(
+            search = listEmployeesInput.search,
+            roles = listEmployeesInput.roles,
+            page = listEmployeesInput.page,
+            size = listEmployeesInput.size
+        )
         return ResponseEntity.ok(employees)
     }
 }

@@ -78,7 +78,12 @@ class EmployeeService(private val employeeRepository: EmployeeRepository) {
      * @param size: Int
      * @return List<Employee>
      */
-    fun listEmployees(search: String, roles: List<String>, page: Int, size: Int): List<Employee> {
+    fun listEmployees(
+        search: String, 
+        roles: List<String>, 
+        page: Int, 
+        size: Int
+    ): List<Employee> {
         val employeeDTOs = employeeRepository.listEmployees(search, roles, page, size)
         return employeeDTOs.map { dto ->
             Employee(
