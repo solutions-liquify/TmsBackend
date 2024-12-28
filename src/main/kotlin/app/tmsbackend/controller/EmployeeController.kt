@@ -31,7 +31,7 @@ class EmployeeController(
         return ResponseEntity.ok(updatedEmployee)
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     fun getEmployee(@PathVariable id: String): ResponseEntity<Employee> {
         val employee = employeeService.getEmployee(id)
         return ResponseEntity.ok(employee)

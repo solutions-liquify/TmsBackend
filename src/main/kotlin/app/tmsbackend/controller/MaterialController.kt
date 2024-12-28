@@ -30,7 +30,7 @@ class MaterialController(
         return ResponseEntity.ok(updatedMaterial)
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     fun getMaterial(@PathVariable id: String): ResponseEntity<Material> {
         val material = materialService.getMaterial(id)
         return ResponseEntity.ok(material)

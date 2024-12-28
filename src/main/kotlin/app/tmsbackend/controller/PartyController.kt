@@ -31,7 +31,7 @@ class PartyController(
         return ResponseEntity.ok(updatedParty)
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     fun getParty(@PathVariable id: String): ResponseEntity<Party> {
         val party = partyService.getParty(id)
         return ResponseEntity.ok(party)

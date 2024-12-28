@@ -31,7 +31,7 @@ class LocationController(
         return ResponseEntity.ok(updatedLocation)
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     fun getLocation(@PathVariable id: String): ResponseEntity<Location> {
         val location = locationService.getLocation(id)
         return ResponseEntity.ok(location)
