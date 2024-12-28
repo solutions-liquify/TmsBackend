@@ -7,12 +7,26 @@
 
 ### Step 1: Configure PostgreSQL Database
 
-1. Create a new PostgreSQL database:
+1. Create a new PostgreSQL database and user, then grant necessary permissions:
+
    ```sh
    psql -U postgres
    CREATE DATABASE tms;
    CREATE USER tmsservice WITH ENCRYPTED PASSWORD '123456';
    GRANT ALL PRIVILEGES ON DATABASE tms TO tmsservice;
+   ```
+
+2. Connect to the new database:
+
+   ```sh
+   \c tms
+   ```
+
+3. Grant schema permissions to the user:
+   ```sh
+   GRANT ALL ON SCHEMA public TO tmsservice;
+   GRANT ALL ON ALL TABLES IN SCHEMA public TO tmsservice;
+   ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO tmsservice;
    ```
 
 ### Step 2: Configure Flyway Migration
