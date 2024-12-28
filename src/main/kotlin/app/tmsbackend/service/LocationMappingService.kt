@@ -9,19 +9,27 @@ class LocationMappingService(private val locationMappingConfig: LocationMappingC
     fun listStates(): List<String> =
         locationMappingConfig.states.map { it.name }
 
-    fun listDistricts(): List<String> =
-        locationMappingConfig.states.flatMap { it.districts }.map { it.name }
-
-    fun listTalukas(): List<String> =
+    fun listDistricts(states: List<String> = emptyList()): List<String> =
         locationMappingConfig.states
+            .let { if (states.isEmpty()) it else it.filter { state -> state.name in states } }
             .flatMap { it.districts }
+            .map { it.name }
+
+    fun listTalukas(states: List<String> = emptyList(), districts: List<String> = emptyList()): List<String> =
+        locationMappingConfig.states
+            .let { if (states.isEmpty()) it else it.filter { state -> state.name in states } }
+            .flatMap { it.districts }
+            .let { if (districts.isEmpty()) it else it.filter { district -> district.name in districts } }
             .flatMap { it.talukas }
             .map { it.name }
 
-    fun listCities(): List<String> =
+    fun listCities(states: List<String> = emptyList(), districts: List<String> = emptyList(), talukas: List<String> = emptyList()): List<String> =
         locationMappingConfig.states
+            .let { if (states.isEmpty()) it else it.filter { state -> state.name in states } }
             .flatMap { it.districts }
+            .let { if (districts.isEmpty()) it else it.filter { district -> district.name in districts } }
             .flatMap { it.talukas }
+            .let { if (talukas.isEmpty()) it else it.filter { taluka -> taluka.name in talukas } }
             .flatMap { it.cities }
-            .map { it }
+            
 }

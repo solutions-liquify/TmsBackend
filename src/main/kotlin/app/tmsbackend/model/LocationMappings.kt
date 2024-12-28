@@ -15,3 +15,19 @@ data class State(
     val name: String,
     val districts: List<District>
 )
+
+
+data class ListDistrictsInput(
+    val states: List<String> = emptyList()
+)
+
+data class ListTalukasInput(
+    val states: List<String> = emptyList(),
+    val districts: List<String> = emptyList()
+)
+
+data class ListCitiesInput(
+    val states: List<String> = emptyList(),
+    val districts: List<String> = emptyList(),
+    val talukas: List<String> = emptyList()
+)
