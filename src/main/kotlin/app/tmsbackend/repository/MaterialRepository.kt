@@ -1,9 +1,9 @@
 package app.tmsbackend.repository
 
 import app.tmsbackend.model.MaterialDTO
+import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
-import org.slf4j.LoggerFactory
 
 @Repository
 class MaterialRepository(private val jdbcTemplate: JdbcTemplate) {

@@ -24,7 +24,7 @@ data class EmployeeDTO(
             name = name,
             email = email,
             contactNumber = contactNumber,
-            role =role,
+            role = role,
             createdAt = createdAt
         )
     }

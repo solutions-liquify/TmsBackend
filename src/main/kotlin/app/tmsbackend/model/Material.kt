@@ -4,7 +4,7 @@ data class Material(
     val id: String?,
     val name: String,
     val createdAt: Long?
-) 
+)
 
 data class MaterialDTO(
     val id: String,

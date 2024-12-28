@@ -1,9 +1,9 @@
 package app.tmsbackend.repository
 
 import app.tmsbackend.model.LocationDTO
+import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
-import org.slf4j.LoggerFactory
 
 @Repository
 class LocationRepository(private val jdbcTemplate: JdbcTemplate) {
@@ -32,7 +32,7 @@ class LocationRepository(private val jdbcTemplate: JdbcTemplate) {
             rs.getLong("created_at")
         )
     }
-    
+
     /**
      * Create location
      * @param locationDTO: LocationDTO
@@ -103,7 +103,7 @@ class LocationRepository(private val jdbcTemplate: JdbcTemplate) {
      * Get location by id
      * @param id: String
      * @return LocationDTO?
-     */ 
+     */
     fun getLocation(id: String): LocationDTO? {
         try {
             logger.debug("[APP] Fetching location with ID: $id")
@@ -119,8 +119,8 @@ class LocationRepository(private val jdbcTemplate: JdbcTemplate) {
             logger.error("[APP] Error fetching location with ID: $id", e)
             throw e
         }
-    } 
-    
+    }
+
     /**
      * List locations with pagination and search
      * @param search: String
@@ -133,7 +133,7 @@ class LocationRepository(private val jdbcTemplate: JdbcTemplate) {
      * @param returnAll: Boolean
      * @return List<LocationDTO>
      */
-    
+
     fun listLocations(
         search: String = "",
         page: Int = 1,
@@ -147,33 +147,33 @@ class LocationRepository(private val jdbcTemplate: JdbcTemplate) {
         try {
             logger.debug("[APP] Listing locations with search: '$search', page: $page, size: $size, returnAll: $returnAll")
             val sqlBuilder = StringBuilder("SELECT * FROM locations WHERE 1=1")
-            
+
             if (search.isNotBlank()) {
                 sqlBuilder.append(" AND name LIKE ?")
             }
-            
+
             if (states.isNotEmpty()) {
                 sqlBuilder.append(" AND state IN (${states.joinToString(",") { "?" }})")
             }
-            
+
             if (districts.isNotEmpty()) {
                 sqlBuilder.append(" AND district IN (${districts.joinToString(",") { "?" }})")
             }
-            
+
             if (talukas.isNotEmpty()) {
                 sqlBuilder.append(" AND taluka IN (${talukas.joinToString(",") { "?" }})")
             }
-            
+
             if (cities.isNotEmpty()) {
                 sqlBuilder.append(" AND city IN (${cities.joinToString(",") { "?" }})")
             }
-            
+
             sqlBuilder.append(" ORDER BY created_at DESC")
-            
+
             if (!returnAll) {
                 sqlBuilder.append(" LIMIT ? OFFSET ?")
             }
-            
+
             val sql = sqlBuilder.toString()
             val offset = (page - 1) * size
             val locations = if (search.isNotBlank()) {
@@ -189,7 +189,7 @@ class LocationRepository(private val jdbcTemplate: JdbcTemplate) {
                     jdbcTemplate.query(sql, { rs, _ -> rowMapper(rs) }, size, offset)
                 }
             }
-            
+
             logger.info("[APP] Listed ${locations.size} locations")
             return locations
         } catch (e: Exception) {

@@ -5,7 +5,7 @@ import app.tmsbackend.model.MaterialDTO
 import app.tmsbackend.repository.MaterialRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @Service
 class MaterialService(private val materialRepository: MaterialRepository) {

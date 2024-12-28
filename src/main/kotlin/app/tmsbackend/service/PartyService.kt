@@ -5,7 +5,7 @@ import app.tmsbackend.model.PartyDTO
 import app.tmsbackend.repository.PartyRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @Service
 class PartyService(private val partyRepository: PartyRepository) {

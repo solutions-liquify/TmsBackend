@@ -1,9 +1,9 @@
 package app.tmsbackend.repository
 
 import app.tmsbackend.model.PartyDTO
+import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
-import org.slf4j.LoggerFactory
 
 @Repository
 class PartyRepository(private val jdbcTemplate: JdbcTemplate) {
@@ -32,7 +32,7 @@ class PartyRepository(private val jdbcTemplate: JdbcTemplate) {
             rs.getLong("created_at")
         )
     }
-    
+
     /**
      * Create party
      * @param partyDTO: PartyDTO
@@ -103,7 +103,7 @@ class PartyRepository(private val jdbcTemplate: JdbcTemplate) {
      * Get party by id
      * @param id: String
      * @return PartyDTO?
-     */ 
+     */
     fun getParty(id: String): PartyDTO? {
         try {
             logger.debug("[APP] Fetching party with ID: $id")
@@ -119,8 +119,8 @@ class PartyRepository(private val jdbcTemplate: JdbcTemplate) {
             logger.error("[APP] Error fetching party with ID: $id", e)
             throw e
         }
-    } 
-    
+    }
+
     /**
      * List parties with pagination and search
      * @param search: String
@@ -128,18 +128,18 @@ class PartyRepository(private val jdbcTemplate: JdbcTemplate) {
      * @param size: Int
      * @return List<PartyDTO>
      */
-    
+
     fun listParties(search: String, page: Int, size: Int): List<PartyDTO> {
         try {
             logger.debug("[APP] Listing parties with search: '$search', page: $page, size: $size")
             val sqlBuilder = StringBuilder("SELECT * FROM parties WHERE 1=1")
-            
+
             if (search.isNotBlank()) {
                 sqlBuilder.append(" AND name LIKE ?")
             }
-            
+
             sqlBuilder.append(" ORDER BY created_at DESC LIMIT ? OFFSET ?")
-            
+
             val sql = sqlBuilder.toString()
             val offset = (page - 1) * size
             val parties = if (search.isNotBlank()) {
@@ -147,7 +147,7 @@ class PartyRepository(private val jdbcTemplate: JdbcTemplate) {
             } else {
                 jdbcTemplate.query(sql, { rs, _ -> rowMapper(rs) }, size, offset)
             }
-            
+
             logger.info("[APP] Listed ${parties.size} parties")
             return parties
         } catch (e: Exception) {
@@ -156,21 +156,21 @@ class PartyRepository(private val jdbcTemplate: JdbcTemplate) {
         }
     }
 
-/**
- * List all parties without pagination and search
- * @return List<PartyDTO>
- */
-fun listAllParties(): List<PartyDTO> {
-    try {
-        logger.debug("[APP] Listing all parties")
-        val sql = "SELECT * FROM parties ORDER BY created_at DESC"
-        val parties = jdbcTemplate.query(sql) { rs, _ -> rowMapper(rs) }
-        logger.info("[APP] Listed ${parties.size} parties")
-        return parties
-    } catch (e: Exception) {
-        logger.error("[APP] Error listing all parties", e)
-        throw e
+    /**
+     * List all parties without pagination and search
+     * @return List<PartyDTO>
+     */
+    fun listAllParties(): List<PartyDTO> {
+        try {
+            logger.debug("[APP] Listing all parties")
+            val sql = "SELECT * FROM parties ORDER BY created_at DESC"
+            val parties = jdbcTemplate.query(sql) { rs, _ -> rowMapper(rs) }
+            logger.info("[APP] Listed ${parties.size} parties")
+            return parties
+        } catch (e: Exception) {
+            logger.error("[APP] Error listing all parties", e)
+            throw e
+        }
     }
-}
 
 }

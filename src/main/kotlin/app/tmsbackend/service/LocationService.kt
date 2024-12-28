@@ -5,7 +5,7 @@ import app.tmsbackend.model.LocationDTO
 import app.tmsbackend.repository.LocationRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @Service
 class LocationService(private val locationRepository: LocationRepository) {

@@ -5,7 +5,7 @@ import app.tmsbackend.model.EmployeeDTO
 import app.tmsbackend.repository.EmployeeRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @Service
 class EmployeeService(private val employeeRepository: EmployeeRepository) {
@@ -79,22 +79,13 @@ class EmployeeService(private val employeeRepository: EmployeeRepository) {
      * @return List<Employee>
      */
     fun listEmployees(
-        search: String, 
-        roles: List<String>, 
-        page: Int, 
+        search: String,
+        roles: List<String>,
+        page: Int,
         size: Int
     ): List<Employee> {
         val employeeDTOs = employeeRepository.listEmployees(search, roles, page, size)
-        return employeeDTOs.map { dto ->
-            Employee(
-                dto.id,
-                dto.name,
-                dto.email,
-                dto.contactNumber,
-                dto.role,
-                dto.createdAt
-            )
-        }
+        return employeeDTOs.map { it.toEmployee() }
     }
 }
 
