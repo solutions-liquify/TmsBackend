@@ -35,8 +35,9 @@ class SecurityConfig(val jwtUtil: JwtUtil) {
             .cors { cors -> cors.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests { auth ->
                 auth
+                auth
                     // Public Routes
-                    .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers("/api/v1/auth/**").permitAll()
                     // Open routes
                     .requestMatchers(HttpMethod.GET, "/public/**").permitAll()
                     .anyRequest().authenticated()
@@ -49,13 +50,13 @@ class SecurityConfig(val jwtUtil: JwtUtil) {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("*") // Allow all origins
-        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS") // Allow all methods
-        configuration.allowedHeaders = listOf("*") // Allow all headers
-        configuration.exposedHeaders = listOf("Authorization", "Content-Type") // Expose specific headers
+        configuration.allowedOrigins = listOf("http://localhost:3000")
+        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        configuration.allowedHeaders = listOf("Authorization", "Content-Type", "X-Requested-With")
+        configuration.exposedHeaders = listOf("Authorization", "Content-Type")
         configuration.allowCredentials = true
         val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", configuration) // Apply to all endpoints
+        source.registerCorsConfiguration("/**", configuration)
         return source
     }
 }

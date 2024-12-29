@@ -8,7 +8,10 @@ import java.time.Instant
 import java.util.*
 
 @Service
-class EmployeeService(private val employeeRepository: EmployeeRepository) {
+class EmployeeService(
+    private val employeeRepository: EmployeeRepository,
+    private val authUserService: AuthUserService,
+) {
 
     /**
      * Create employee
@@ -32,6 +35,7 @@ class EmployeeService(private val employeeRepository: EmployeeRepository) {
             employeeToCreate.createdAt ?: 0L
         )
         employeeRepository.createEmployee(employeeDTO)
+        authUserService.createAuthUser(id=employeeDTO.id, username = employeeDTO.email, role = employeeDTO.role)
         return employeeToCreate
     }
 

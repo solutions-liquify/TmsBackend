@@ -7,3 +7,13 @@ data class AuthUserDTO(
     val role: String,
     val refreshToken: String? = null
 )
+
+data class LoginRequest(
+    val email: String,
+    val password: String
+)
+
+data class AuthResponse(
+    val accessToken: String,
+    val refreshToken: String
+)
