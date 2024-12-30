@@ -30,12 +30,31 @@ class AuthUserService(
         return AuthResponse(accessToken, refreshToken)
     }
 
+
+    fun refreshToken(refreshToken: String): AuthResponse {
+        val username = jwtUtil.extractUsername(refreshToken) ?: throw IllegalArgumentException("Invalid refresh token: Username extraction failed")
+        if (jwtUtil.isTokenExpired(refreshToken)) {
+            throw IllegalStateException("Expired token for user: $username")
+        }
+
+        val userDetails = userDetailsService.loadUserByUsername(username)
+        val authUser = authUserRepository.findByUsername(username) ?: throw UsernameNotFoundException("User not found with username: $username")
+
+        if (authUser.refreshToken != refreshToken) {
+            throw IllegalStateException("Invalid token for user: $username")
+        }
+        val newAccessToken = jwtUtil.generateAccessToken(userDetails)
+        val newRefreshToken = jwtUtil.generateRefreshToken(userDetails)
+        authUserRepository.update(authUser.copy(refreshToken = newRefreshToken))
+        return AuthResponse(accessToken = newAccessToken, refreshToken = newRefreshToken)
+    }
+
     fun createAuthUser(
         id: String,
         username: String,
         role: String
     ): AuthUserDTO {
-        val randomPassword = "123456" // TODO: Make it random string
+        val randomPassword = (100000..999999).random().toString()
         val passwordHash = passwordEncoder.encode(randomPassword)
         val authUser = AuthUserDTO(
             id = id,

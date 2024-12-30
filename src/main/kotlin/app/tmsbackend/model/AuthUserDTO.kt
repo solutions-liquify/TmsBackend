@@ -13,6 +13,10 @@ data class LoginRequest(
     val password: String
 )
 
+data class RefreshTokenRequest(
+    val refreshToken: String
+)
+
 data class AuthResponse(
     val accessToken: String,
     val refreshToken: String
