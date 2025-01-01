@@ -93,10 +93,10 @@ class DeliveryOrderService(
      */
     fun listDeliveryOrders(
         search: String? = null,
-        page: Int? = null,
-        pageSize: Int? = null,
-        statuses: List<String>? = null,
-        partyIds: List<String>? = null
+        page: Int = 1,
+        pageSize: Int = 10,
+        statuses: List<String> = emptyList(),
+        partyIds: List<String> = emptyList()
     ): List<ListDeliveryOrderItem> {
         return deliveryOrderRepository.listDeliveryOrders(
             search = search,

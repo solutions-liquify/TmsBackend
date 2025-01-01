@@ -41,15 +41,15 @@ data class DeliveryOrder(
 
 data class ListDeliveryOrderInput(
     val search: String? = null,
-    val page: Int? = null,
-    val pageSize: Int? = null,
-    val statuses: List<String>? = null,
-    val partyIds: List<String>? = null
+    val page: Int = 1,
+    val pageSize: Int = 10,
+    val statuses: List<String> = emptyList(),
+    val partyIds: List<String> = emptyList()
 )
 
 data class ListDeliveryOrderItem(
     val id: String,
-    val contractId: String,
-    val partyName: String,
-    val status: String,
+    val contractId: String?,
+    val partyName: String?,
+    val status: String?,
 )

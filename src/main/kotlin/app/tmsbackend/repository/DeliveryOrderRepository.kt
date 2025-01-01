@@ -327,50 +327,63 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
         }
     }
 
-    
     fun listDeliveryOrders(
         search: String? = null,
-        page: Int? = null,
-        pageSize: Int? = null,
-        statuses: List<String>? = null,
-        partyIds: List<String>? = null
+        page: Int = 1,
+        pageSize: Int = 10,
+        statuses: List<String> = emptyList(),
+        partyIds: List<String> = emptyList()
     ): List<ListDeliveryOrderItem> {
-        try {
-            logger.debug("[APP] Listing delivery orders with search: $search, page: $page, pageSize: $pageSize, statuses: $statuses, partyIds: $partyIds")
+        val offset = (page - 1) * pageSize
 
-            val sql = """
-                SELECT do.id, do.contract_id, p.name as party_name, do.status
-                FROM delivery_orders do
-                JOIN parties p ON do.party_id = p.id
-                WHERE (:search IS NULL OR do.contract_id LIKE :search)
-                AND (:statuses IS NULL OR do.status IN (:statuses))
-                AND (:partyIds IS NULL OR do.party_id IN (:partyIds))
-                ORDER BY do.created_at DESC
-                LIMIT :limit
-                OFFSET :offset
-            """.trimIndent()
+        // Build the base query
+        val sqlBuilder = StringBuilder("""
+        SELECT id, contract_id, status
+        FROM delivery_orders
+        WHERE 1=1
+    """.trimIndent())
 
-            val offset = ((page ?: 1) - 1) * (pageSize ?: 10)
+        // Add filtering for statuses if the list is not empty
+        if (statuses.isNotEmpty()) {
+            sqlBuilder.append(" AND status = ANY (?)")
+        }
 
-            return jdbcTemplate.query(sql, { rs, _ ->
+        if (partyIds.isNotEmpty()) {
+            sqlBuilder.append(" AND party_id = ANY (?)")
+        }
+
+        // Add ordering and pagination
+        sqlBuilder.append(" ORDER BY created_at DESC LIMIT ? OFFSET ?")
+
+        val sql = sqlBuilder.toString()
+
+        // Prepare query parameters
+        val params = mutableListOf<Any?>()
+        if (statuses.isNotEmpty()) {
+            params.add(statuses.toTypedArray())
+        }
+
+        if (partyIds.isNotEmpty()) {
+            params.add(partyIds.toTypedArray())
+        }
+        params.add(pageSize)
+        params.add(offset)
+
+        return try {
+            jdbcTemplate.query(sql, { rs, _ ->
                 ListDeliveryOrderItem(
                     id = rs.getString("id"),
                     contractId = rs.getString("contract_id"),
-                    partyName = rs.getString("party_name"),
-                    status = rs.getString("status")
+                    status = rs.getString("status"),
+                    partyName = "TODO"
                 )
-            }, mapOf(
-                "search" to search?.let { "%$it%" },
-                "statuses" to statuses,
-                "partyIds" to partyIds,
-                "limit" to (pageSize ?: 10),
-                "offset" to offset
-            )).also {
-                logger.info("[APP] Listed ${it.size} delivery orders")
+            }, *params.toTypedArray()).also {
+                logger.info("[APP] Retrieved ${it.size} delivery orders for page $page with pageSize $pageSize and statuses $statuses")
             }
         } catch (e: Exception) {
-            logger.error("[APP] Error listing delivery orders", e)
+            logger.error("[APP] Error fetching paginated delivery orders", e)
             throw e
         }
     }
 }
+ 
