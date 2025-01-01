@@ -5,7 +5,7 @@ data class DeliveryOrderItem(
     val deliveryOrderId: String?,
     val district: String,
     val taluka: String,
-    val location: String,
+    val locationId: String,
     val materialId: String?,
     val quantity: Double = 0.0,
     val deliveredQuantity: Double = 0.0,
@@ -37,5 +37,4 @@ data class DeliveryOrder(
     val createdAt: Long?,
     val updatedAt: Long?,
     val deliveryOrderSections: List<DeliveryOrderSection> = emptyList()
-
 )

@@ -1,0 +1,1 @@
+ALTER TABLE delivery_order_items RENAME COLUMN location TO location_id;
