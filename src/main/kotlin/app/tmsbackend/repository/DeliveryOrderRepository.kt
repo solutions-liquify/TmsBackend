@@ -3,6 +3,7 @@ package app.tmsbackend.repository
 import app.tmsbackend.model.DeliveryOrder
 import app.tmsbackend.model.DeliveryOrderItem
 import app.tmsbackend.model.DeliveryOrderSection
+import app.tmsbackend.model.ListDeliveryOrderItem
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
@@ -53,8 +54,23 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
 
             val sql = """
                 INSERT INTO delivery_orders (
-                    id, contract_id, party_id, date_of_contract, status, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    id,
+                    contract_id,
+                    party_id,
+                    date_of_contract,
+                    status,
+                    created_at,
+                    updated_at
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?
+                )
             """.trimIndent()
 
             jdbcTemplate.update(
@@ -85,9 +101,29 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
     private fun createDeliveryOrderItem(item: DeliveryOrderItem) {
         val sql = """
             INSERT INTO delivery_order_items (
-                id, delivery_order_id, district, taluka, location_id, 
-                material_id, quantity, rate, due_date, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                id,
+                delivery_order_id,
+                district,
+                taluka,
+                location_id,
+                material_id,
+                quantity,
+                rate,
+                due_date,
+                status
+            )
+            VALUES (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?
+            )
         """.trimIndent()
 
         jdbcTemplate.update(
@@ -109,7 +145,11 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
         try {
             logger.debug("[APP] Fetching delivery order with ID: $id")
 
-            val orderSql = "SELECT * FROM delivery_orders WHERE id = ?"
+            val orderSql = """
+                SELECT *
+                FROM delivery_orders
+                WHERE id = ?
+            """.trimIndent()
             val deliveryOrder = jdbcTemplate.queryForObject(orderSql, { rs, _ -> deliveryOrderRowMapper(rs) }, id) ?: return null
 
             val items = getDeliveryOrderItems(id)
@@ -141,7 +181,11 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
     }
 
     private fun getDeliveryOrderItems(deliveryOrderId: String): List<DeliveryOrderItem> {
-        val sql = "SELECT * FROM delivery_order_items WHERE delivery_order_id = ?"
+        val sql = """
+            SELECT *
+            FROM delivery_order_items
+            WHERE delivery_order_id = ?
+        """.trimIndent()
         return jdbcTemplate.query(sql, { rs, _ -> deliveryOrderItemRowMapper(rs) }, deliveryOrderId)
     }
 
@@ -153,10 +197,11 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
             // 1. Update the main delivery order record
             val orderSql = """
                 UPDATE delivery_orders 
-                SET contract_id = ?, 
-                    party_id = ?, 
-                    date_of_contract = ?, 
-                    status = ?, 
+                SET
+                    contract_id = ?,
+                    party_id = ?,
+                    date_of_contract = ?,
+                    status = ?,
                     updated_at = ?
                 WHERE id = ?
             """.trimIndent()
@@ -187,7 +232,10 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
 
             // 5. Delete removed items
             if (itemsToDelete.isNotEmpty()) {
-                val deleteSql = "DELETE FROM delivery_order_items WHERE id = ?"
+                val deleteSql = """
+                    DELETE FROM delivery_order_items
+                    WHERE id = ?
+                """.trimIndent()
                 itemsToDelete.forEach { item ->
                     jdbcTemplate.update(deleteSql, item.id)
                 }
@@ -196,7 +244,8 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
             // 6. Update existing items
             val updateItemSql = """
                 UPDATE delivery_order_items 
-                SET district = ?,
+                SET
+                    district = ?,
                     taluka = ?,
                     location_id = ?,
                     material_id = ?,
@@ -225,9 +274,29 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
             // 7. Create new items
             val createItemSql = """
                 INSERT INTO delivery_order_items (
-                    id, delivery_order_id, district, taluka, location_id,
-                    material_id, quantity, rate, due_date, status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    id,
+                    delivery_order_id,
+                    district,
+                    taluka,
+                    location_id,
+                    material_id,
+                    quantity,
+                    rate,
+                    due_date,
+                    status
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?
+                )
             """.trimIndent()
 
             itemsToCreate.forEach { item ->
@@ -257,35 +326,46 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
             throw e
         }
     }
-    fun listDeliveryOrders(page: Int, size: Int): List<DeliveryOrder> {
-        try {
-            logger.debug("[APP] Listing delivery orders with page: $page, size: $size")
 
-            val sql = "SELECT * FROM delivery_orders ORDER BY created_at DESC LIMIT ? OFFSET ?"
-            val offset = (page - 1) * size
+    
+    fun listDeliveryOrders(
+        search: String? = null,
+        page: Int? = null,
+        pageSize: Int? = null,
+        statuses: List<String>? = null,
+        partyIds: List<String>? = null
+    ): List<ListDeliveryOrderItem> {
+        try {
+            logger.debug("[APP] Listing delivery orders with search: $search, page: $page, pageSize: $pageSize, statuses: $statuses, partyIds: $partyIds")
+
+            val sql = """
+                SELECT do.id, do.contract_id, p.name as party_name, do.status
+                FROM delivery_orders do
+                JOIN parties p ON do.party_id = p.id
+                WHERE (:search IS NULL OR do.contract_id LIKE :search)
+                AND (:statuses IS NULL OR do.status IN (:statuses))
+                AND (:partyIds IS NULL OR do.party_id IN (:partyIds))
+                ORDER BY do.created_at DESC
+                LIMIT :limit
+                OFFSET :offset
+            """.trimIndent()
+
+            val offset = ((page ?: 1) - 1) * (pageSize ?: 10)
 
             return jdbcTemplate.query(sql, { rs, _ ->
-                val order = deliveryOrderRowMapper(rs)
-                val items = getDeliveryOrderItems(order.id.toString())
-
-                val sections = items.groupBy { it.district }.map { (district, districtItems) ->
-                    DeliveryOrderSection(
-                        district = district,
-                        totalQuantity = districtItems.sumOf { it.quantity },
-                        totalDeliveredQuantity = districtItems.sumOf { it.deliveredQuantity },
-                        totalInProgressQuantity = districtItems.sumOf { it.inProgressQuantity },
-                        status = districtItems.firstOrNull()?.status ?: "",
-                        deliveryOrderItems = districtItems
-                    )
-                }
-
-                order.copy(
-                    deliveryOrderSections = sections,
-                    grandTotalQuantity = sections.sumOf { it.totalQuantity },
-                    grandTotalDeliveredQuantity = sections.sumOf { it.totalDeliveredQuantity },
-                    grandTotalInProgressQuantity = sections.sumOf { it.totalInProgressQuantity }
+                ListDeliveryOrderItem(
+                    id = rs.getString("id"),
+                    contractId = rs.getString("contract_id"),
+                    partyName = rs.getString("party_name"),
+                    status = rs.getString("status")
                 )
-            }, size, offset).also {
+            }, mapOf(
+                "search" to search?.let { "%$it%" },
+                "statuses" to statuses,
+                "partyIds" to partyIds,
+                "limit" to (pageSize ?: 10),
+                "offset" to offset
+            )).also {
                 logger.info("[APP] Listed ${it.size} delivery orders")
             }
         } catch (e: Exception) {

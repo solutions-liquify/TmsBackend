@@ -1,6 +1,8 @@
 package app.tmsbackend.controller
 
 import app.tmsbackend.model.DeliveryOrder
+import app.tmsbackend.model.ListDeliveryOrderInput
+import app.tmsbackend.model.ListDeliveryOrderItem
 import app.tmsbackend.service.DeliveryOrderService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.CrossOrigin
@@ -9,7 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @CrossOrigin
@@ -37,12 +38,17 @@ class DeliveryOrderController(
         return ResponseEntity.ok(deliveryOrder)
     }
 
-    @GetMapping("/list")
+    @PostMapping("/list")
     fun listDeliveryOrders(
-        @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int
-    ): ResponseEntity<List<DeliveryOrder>> {
-        val deliveryOrders = deliveryOrderService.listDeliveryOrders(page, size)
+        @RequestBody input: ListDeliveryOrderInput
+    ): ResponseEntity<List<ListDeliveryOrderItem>> {
+        val deliveryOrders = deliveryOrderService.listDeliveryOrders(
+            search = input.search,
+            page = input.page,
+            pageSize = input.pageSize,
+            statuses = input.statuses,
+            partyIds = input.partyIds
+        )
         return ResponseEntity.ok(deliveryOrders)
     }
 }

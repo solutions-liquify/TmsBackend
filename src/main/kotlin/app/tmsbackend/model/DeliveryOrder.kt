@@ -38,3 +38,18 @@ data class DeliveryOrder(
     val updatedAt: Long?,
     val deliveryOrderSections: List<DeliveryOrderSection> = emptyList()
 )
+
+data class ListDeliveryOrderInput(
+    val search: String? = null,
+    val page: Int? = null,
+    val pageSize: Int? = null,
+    val statuses: List<String>? = null,
+    val partyIds: List<String>? = null
+)
+
+data class ListDeliveryOrderItem(
+    val id: String,
+    val contractId: String,
+    val partyName: String,
+    val status: String,
+)

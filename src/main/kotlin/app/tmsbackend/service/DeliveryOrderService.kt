@@ -2,6 +2,7 @@ package app.tmsbackend.service
 
 import app.tmsbackend.model.DeliveryOrder
 import app.tmsbackend.model.DeliveryOrderSection
+import app.tmsbackend.model.ListDeliveryOrderItem
 import app.tmsbackend.repository.DeliveryOrderRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -46,27 +47,30 @@ class DeliveryOrderService(
      */
     fun updateDeliveryOrder(deliveryOrder: DeliveryOrder): DeliveryOrder {
         // Validate that delivery order exists
-        deliveryOrder.id?.let { deliveryOrderRepository.getDeliveryOrder(it) ?: throw IllegalArgumentException("Delivery order not found") } ?: throw IllegalArgumentException("Delivery order ID cannot be null")
+        if (deliveryOrder.id == null) {
+            throw IllegalArgumentException("Delivery order ID cannot be null")
+        }
+        
+        val existingOrder = deliveryOrderRepository.getDeliveryOrder(deliveryOrder.id)
+        if (existingOrder == null) {
+            throw IllegalArgumentException("Delivery order not found")
+        }
 
         // Process new items - assign UUIDs to new items (where id is null)
-        val processedSections = deliveryOrder.deliveryOrderSections.map { section ->
+        val updatedSections = deliveryOrder.deliveryOrderSections.map { section ->
             section.copy(
-                deliveryOrderItems = section.deliveryOrderItems.map { item ->
-                    if (item.id == null) {
-                        item.copy(
-                            id = UUID.randomUUID().toString(),
-                            deliveryOrderId = deliveryOrder.id
-                        )
-                    } else {
-                        item
-                    }
+                deliveryOrderItems = section.deliveryOrderItems.map {
+                    it.takeUnless { it.id == null } ?: it.copy(
+                        id = UUID.randomUUID().toString(),
+                        deliveryOrderId = deliveryOrder.id
+                    )
                 }
             )
         }
 
         val deliveryOrderToUpdate = deliveryOrder.copy(
             updatedAt = Instant.now().epochSecond,
-            deliveryOrderSections = processedSections
+            deliveryOrderSections = updatedSections
         )
 
         return deliveryOrderRepository.updateDeliveryOrder(deliveryOrderToUpdate)
@@ -87,7 +91,19 @@ class DeliveryOrderService(
      * @param size: Int
      * @return List<DeliveryOrder>
      */
-    fun listDeliveryOrders(page: Int, size: Int): List<DeliveryOrder> {
-        return deliveryOrderRepository.listDeliveryOrders(page, size)
+    fun listDeliveryOrders(
+        search: String? = null,
+        page: Int? = null,
+        pageSize: Int? = null,
+        statuses: List<String>? = null,
+        partyIds: List<String>? = null
+    ): List<ListDeliveryOrderItem> {
+        return deliveryOrderRepository.listDeliveryOrders(
+            search = search,
+            page = page,
+            pageSize = pageSize,
+            statuses = statuses,
+            partyIds = partyIds
+        )
     }
 }
