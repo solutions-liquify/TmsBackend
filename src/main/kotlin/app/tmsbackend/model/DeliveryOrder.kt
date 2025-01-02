@@ -1,5 +1,15 @@
 package app.tmsbackend.model
 
+
+data class DeliverOrderItemMetadata(
+    val id: String,
+    val district: String,
+    val taluka: String,
+    val locationName: String,
+    val materialName: String,
+    val quantity: Double,
+    val status: String
+)
 data class DeliveryOrderItem(
     val id: String?,
     val deliveryOrderId: String?,

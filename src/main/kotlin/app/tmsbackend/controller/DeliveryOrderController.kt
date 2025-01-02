@@ -1,6 +1,8 @@
 package app.tmsbackend.controller
 
+import app.tmsbackend.model.DeliverOrderItemMetadata
 import app.tmsbackend.model.DeliveryOrder
+import app.tmsbackend.model.DeliveryOrderItem
 import app.tmsbackend.model.ListDeliveryOrderInput
 import app.tmsbackend.model.ListDeliveryOrderItem
 import app.tmsbackend.service.DeliveryOrderService
@@ -50,5 +52,10 @@ class DeliveryOrderController(
             partyIds = input.partyIds
         )
         return ResponseEntity.ok(deliveryOrders)
+    }
+
+    @GetMapping("/list/delivery-order-items/{deliveryOrderId}")
+    fun listDeliveryOrderItems(@PathVariable deliveryOrderId: String): ResponseEntity<List<DeliverOrderItemMetadata>> {
+        return ResponseEntity.ok(deliveryOrderService.listDeliveryOrderItemsForDeliveryOrderId(deliveryOrderId))
     }
 }

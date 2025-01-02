@@ -1,5 +1,6 @@
 package app.tmsbackend.repository
 
+import app.tmsbackend.model.DeliverOrderItemMetadata
 import app.tmsbackend.model.DeliveryOrder
 import app.tmsbackend.model.DeliveryOrderItem
 import app.tmsbackend.model.DeliveryOrderSection
@@ -180,13 +181,47 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
         }
     }
 
-    private fun getDeliveryOrderItems(deliveryOrderId: String): List<DeliveryOrderItem> {
+    fun getDeliveryOrderItems(deliveryOrderId: String): List<DeliveryOrderItem> {
         val sql = """
             SELECT *
             FROM delivery_order_items
             WHERE delivery_order_id = ?
         """.trimIndent()
         return jdbcTemplate.query(sql, { rs, _ -> deliveryOrderItemRowMapper(rs) }, deliveryOrderId)
+    }
+
+
+    fun listDeliverOrderItemMetadata(deliveryOrderId: String): List<DeliverOrderItemMetadata> {
+        val sql = """
+        SELECT 
+            doi.id,
+            doi.district,
+            doi.taluka,
+            loc.name AS location_name,
+            mat.name AS material_name,
+            doi.quantity,
+            doi.status
+        FROM 
+            delivery_order_items doi
+        JOIN 
+            locations loc ON doi.location_id = loc.id
+        JOIN 
+            materials mat ON doi.material_id = mat.id
+        WHERE 
+            doi.delivery_order_id = ?
+    """.trimIndent()
+
+        return jdbcTemplate.query(sql, { rs, _ ->
+            DeliverOrderItemMetadata(
+                id = rs.getString("id"),
+                district = rs.getString("district"),
+                taluka = rs.getString("taluka"),
+                locationName = rs.getString("location_name"),
+                materialName = rs.getString("material_name"),
+                quantity = rs.getDouble("quantity"),
+                status = rs.getString("status")
+            )
+        }, deliveryOrderId)
     }
 
     @Transactional

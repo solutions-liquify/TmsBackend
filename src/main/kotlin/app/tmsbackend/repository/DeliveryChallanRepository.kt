@@ -21,7 +21,7 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
             status = rs.getString("status"),
             createdAt = rs.getLong("created_at"),
             updatedAt = rs.getLong("updated_at"),
-            partyName = "TODO"
+            partyName = rs.getString("party_name")
         )
     }
 
@@ -116,16 +116,24 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
             logger.debug("[APP] Fetching delivery challan with ID: $id")
 
             val challanSql = """
-                SELECT * 
-                FROM delivery_challan 
-                WHERE id = ?
-                """.trimIndent()
+            SELECT 
+                dc.*, 
+                p.name AS party_name 
+            FROM 
+                delivery_challan AS dc
+            JOIN 
+                delivery_orders AS d_orders ON dc.delivery_order_id = d_orders.id
+            JOIN 
+                parties AS p ON d_orders.party_id = p.id
+            WHERE 
+                dc.id = ?;
+            """.trimIndent()
             val deliveryChallan = jdbcTemplate.queryForObject(challanSql, { rs, _ -> deliveryChallanRowMapper(rs) }, id) ?: return null
 
-            // val items = getDeliveryChallanItems(id)
+             val items = getDeliveryChallanItems(id)
 
             return deliveryChallan.copy(
-                // deliveryChallanItems = items
+                 deliveryChallanItems = items
             ).also {
                 logger.info("[APP] Delivery challan found with ID: $id")
             }
@@ -138,9 +146,26 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
 
     private fun getDeliveryChallanItems(deliveryChallanId: String): List<DeliveryChallanItem> {
         val sql = """
-            SELECT *
-            FROM delivery_challan_items
-            WHERE delivery_challan_id = ?
+            SELECT 
+                dci.*, 
+                doi.district,
+                doi.taluka,
+                loc.name AS location_name,
+                mat.name AS material_name,
+                doi.quantity,
+                doi.rate, 
+                doi.due_date, 
+                doi.status
+            FROM 
+                delivery_challan_items dci
+            JOIN 
+                delivery_order_items doi ON dci.delivery_order_item_id = doi.id
+            JOIN 
+                locations loc ON doi.location_id = loc.id
+            JOIN 
+                materials mat ON doi.material_id = mat.id
+            WHERE 
+                dci.delivery_challan_id = ?
         """.trimIndent()
         return jdbcTemplate.query(sql, { rs, _ -> deliveryChallanItemRowMapper(rs) }, deliveryChallanId)
     }

@@ -1,6 +1,8 @@
 package app.tmsbackend.service
 
+import app.tmsbackend.model.DeliverOrderItemMetadata
 import app.tmsbackend.model.DeliveryOrder
+import app.tmsbackend.model.DeliveryOrderItem
 import app.tmsbackend.model.DeliveryOrderSection
 import app.tmsbackend.model.ListDeliveryOrderItem
 import app.tmsbackend.repository.DeliveryOrderRepository
@@ -105,5 +107,9 @@ class DeliveryOrderService(
             statuses = statuses,
             partyIds = partyIds
         )
+    }
+
+    fun listDeliveryOrderItemsForDeliveryOrderId(deliveryOrderId: String): List<DeliverOrderItemMetadata> {
+        return deliveryOrderRepository.listDeliverOrderItemMetadata(deliveryOrderId)
     }
 }
