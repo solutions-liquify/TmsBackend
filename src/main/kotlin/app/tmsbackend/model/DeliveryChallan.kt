@@ -3,9 +3,9 @@ package app.tmsbackend.model
 data class DeliveryChallan(
     val id: String?,
     val deliveryOrderId: String?,
-    val dateOfChallan: Long? = null,
+    val dateOfChallan: Long?,
     val status: String?,
-    val partyName: String? = null,
+    val partyName: String?,
     val totalDeliveringQuantity: Double = 0.0,
     val createdAt: Long?,
     val updatedAt: Long?,

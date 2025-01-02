@@ -19,11 +19,9 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
             deliveryOrderId = rs.getString("delivery_order_id"),
             dateOfChallan = rs.getLong("date_of_challan"),
             status = rs.getString("status"),
-            partyName = rs.getString("party_name"),
-            totalDeliveringQuantity = rs.getDouble("total_delivering_quantity"),
             createdAt = rs.getLong("created_at"),
             updatedAt = rs.getLong("updated_at"),
-            deliveryChallanItems = emptyList()
+            partyName = "TODO"
         )
     }
 
@@ -90,7 +88,7 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
 
     private fun createDeliveryChallanItem(item: DeliveryChallanItem) {
         val sql = """
-            INSERT INTO delivery_challan_item (
+            INSERT INTO delivery_challan_items (
                 id,
                 delivery_challan_id,
                 delivery_order_item_id,
@@ -118,16 +116,16 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
             logger.debug("[APP] Fetching delivery challan with ID: $id")
 
             val challanSql = """
-                SELECT *
-                FROM delivery_challan
+                SELECT * 
+                FROM delivery_challan 
                 WHERE id = ?
-            """.trimIndent()
+                """.trimIndent()
             val deliveryChallan = jdbcTemplate.queryForObject(challanSql, { rs, _ -> deliveryChallanRowMapper(rs) }, id) ?: return null
 
-            val items = getDeliveryChallanItems(id)
+            // val items = getDeliveryChallanItems(id)
 
             return deliveryChallan.copy(
-                deliveryChallanItems = items
+                // deliveryChallanItems = items
             ).also {
                 logger.info("[APP] Delivery challan found with ID: $id")
             }
@@ -141,7 +139,7 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
     private fun getDeliveryChallanItems(deliveryChallanId: String): List<DeliveryChallanItem> {
         val sql = """
             SELECT *
-            FROM delivery_challan_item
+            FROM delivery_challan_items
             WHERE delivery_challan_id = ?
         """.trimIndent()
         return jdbcTemplate.query(sql, { rs, _ -> deliveryChallanItemRowMapper(rs) }, deliveryChallanId)
@@ -185,7 +183,7 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
             // Delete removed items
             if (itemsToDelete.isNotEmpty()) {
                 val deleteSql = """
-                    DELETE FROM delivery_challan_item
+                    DELETE FROM delivery_challan_items
                     WHERE id = ?
                 """.trimIndent()
                 itemsToDelete.forEach { item ->
@@ -195,7 +193,7 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
 
             // Update existing items
             val updateItemSql = """
-                UPDATE delivery_challan_item 
+                UPDATE delivery_challan_items
                 SET
                     delivering_quantity = ?
                 WHERE id = ?

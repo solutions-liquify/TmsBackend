@@ -34,6 +34,8 @@ class DeliveryChallanService(
             status = "in-progress",
             createdAt = Instant.now().epochSecond,
             updatedAt = Instant.now().epochSecond,
+            partyName = null,
+            dateOfChallan = Instant.now().epochSecond,
             deliveryChallanItems = emptyList()
         )
 
