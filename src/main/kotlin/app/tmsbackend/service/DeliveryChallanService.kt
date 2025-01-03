@@ -60,9 +60,11 @@ class DeliveryChallanService(
         }
 
         val deliveryChallanToUpdate = deliveryChallan.copy(
+            deliveryChallanItems = deliveryChallan.deliveryChallanItems.map {
+                it.takeUnless { it.id == null } ?: it.copy(id = UUID.randomUUID().toString())
+            },
             updatedAt = Instant.now().epochSecond
         )
-
         return deliveryChallanRepository.updateDeliveryChallan(deliveryChallanToUpdate)
     }
 
