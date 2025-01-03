@@ -37,7 +37,9 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
             quantity = rs.getDouble("quantity"),
             rate = rs.getDouble("rate"),
             dueDate = rs.getLong("due_date"),
-            deliveringQuantity = rs.getDouble("delivering_quantity")
+            deliveringQuantity = rs.getDouble("delivering_quantity"),
+            inProgressQuantity = rs.getDouble("in_progress_quantity"),
+            deliveredQuantity = rs.getDouble("delivered_quantity"),
         )
     }
 
@@ -146,27 +148,42 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
 
     private fun getDeliveryChallanItems(deliveryChallanId: String): List<DeliveryChallanItem> {
         val sql = """
-            SELECT 
-                dci.*, 
-                doi.district,
-                doi.taluka,
-                loc.name AS location_name,
-                mat.name AS material_name,
-                doi.quantity,
-                doi.rate, 
-                doi.due_date, 
-                doi.status
-            FROM 
-                delivery_challan_items dci
-            JOIN 
-                delivery_order_items doi ON dci.delivery_order_item_id = doi.id
-            JOIN 
-                locations loc ON doi.location_id = loc.id
-            JOIN 
-                materials mat ON doi.material_id = mat.id
-            WHERE 
-                dci.delivery_challan_id = ?
-        """.trimIndent()
+    SELECT 
+        dci.*,
+        doi.district,
+        doi.taluka,
+        loc.name AS location_name,
+        mat.name AS material_name,
+        doi.quantity,
+        doi.rate, 
+        doi.due_date, 
+        doi.status,
+        COALESCE(SUM(CASE 
+            WHEN dc.status = 'delivered' THEN dci_sub.delivering_quantity 
+            ELSE 0 
+        END), 0) AS delivered_quantity,
+        COALESCE(SUM(CASE 
+            WHEN dc.status = 'in-progress' THEN dci_sub.delivering_quantity 
+            ELSE 0 
+        END), 0) AS in_progress_quantity
+    FROM 
+        delivery_challan_items dci
+    JOIN 
+        delivery_order_items doi ON dci.delivery_order_item_id = doi.id
+    JOIN 
+        locations loc ON doi.location_id = loc.id
+    JOIN 
+        materials mat ON doi.material_id = mat.id
+    LEFT JOIN 
+        delivery_challan_items dci_sub ON dci_sub.delivery_order_item_id = doi.id
+    LEFT JOIN 
+        delivery_challan dc ON dci_sub.delivery_challan_id = dc.id
+    WHERE 
+        dci.delivery_challan_id = ?
+    GROUP BY 
+        dci.id, doi.id, doi.district, doi.taluka, loc.name, mat.name, 
+        doi.quantity, doi.rate, doi.due_date, doi.status
+""".trimIndent()
         return jdbcTemplate.query(sql, { rs, _ -> deliveryChallanItemRowMapper(rs) }, deliveryChallanId)
     }
 
