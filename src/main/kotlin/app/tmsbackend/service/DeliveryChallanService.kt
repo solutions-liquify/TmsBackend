@@ -88,12 +88,14 @@ class DeliveryChallanService(
     fun listDeliveryChallans(
         search: String? = null,
         page: Int = 1,
-        size: Int = 10
+        size: Int = 10,
+        deliveryOrderIds: List<String> = emptyList()
     ): List<ListDeliveryChallanOutputRecord> {
         return deliveryChallanRepository.listDeliveryChallans(
             search = search,
             page = page,
-            size = size
+            size = size,
+            deliveryOrderIds = deliveryOrderIds,
         )
     }
 }

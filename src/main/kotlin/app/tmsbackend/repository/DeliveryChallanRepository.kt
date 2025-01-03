@@ -272,27 +272,52 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
     fun listDeliveryChallans(
         search: String? = null,
         page: Int = 1,
-        size: Int = 10
+        size: Int = 10,
+        deliveryOrderIds: List<String>? = null
     ): List<ListDeliveryChallanOutputRecord> {
         val offset = (page - 1) * size
+        val params = mutableListOf<Any>()
 
-        val sql = """
-        SELECT 
-            dc.id,
-            dc.delivery_order_id,
-            dc.date_of_challan,
-            dc.status,
-            p.name AS party_name
-        FROM 
-            delivery_challan dc
-        LEFT JOIN 
-            delivery_orders d_order ON dc.delivery_order_id = d_order.id
-        LEFT JOIN 
-            parties p ON d_order.party_id = p.id
+        val baseQuery = """
+    SELECT 
+        dc.id,
+        dc.delivery_order_id,
+        dc.date_of_challan,
+        dc.status,
+        p.name AS party_name,
+        COALESCE(
+            (
+                SELECT SUM(dci.delivering_quantity)
+                FROM delivery_challan_items dci
+                WHERE dci.delivery_challan_id = dc.id
+            ),
+            0.0
+        ) as total_delivering_quantity
+    FROM 
+        delivery_challan dc
+    LEFT JOIN 
+        delivery_orders d_order ON dc.delivery_order_id = d_order.id
+    LEFT JOIN 
+        parties p ON d_order.party_id = p.id
+    """
+
+        val whereClause = mutableListOf<String>()
+
+        if (!deliveryOrderIds.isNullOrEmpty()) {
+            whereClause.add("dc.delivery_order_id IN (" + deliveryOrderIds.joinToString(",") { "?" } + ")")
+            params.addAll(deliveryOrderIds)
+        }
+
+        val sql = baseQuery +
+                (if (whereClause.isNotEmpty()) " WHERE " + whereClause.joinToString(" AND ") else "") +
+                """ 
         ORDER BY 
             dc.created_at DESC
         LIMIT ? OFFSET ?
-    """.trimIndent()
+        """.trimIndent()
+
+        params.add(size)
+        params.add(offset)
 
         return jdbcTemplate.query(sql, { rs, _ ->
             ListDeliveryChallanOutputRecord(
@@ -301,10 +326,11 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
                 dateOfChallan = rs.getLong("date_of_challan"),
                 status = rs.getString("status"),
                 partyName = rs.getString("party_name"),
-                totalDeliveringQuantity = 0.0
+                totalDeliveringQuantity = rs.getDouble("total_delivering_quantity")
             )
-        }, size, offset).also {
-            logger.info("[APP] Retrieved ${it.size} delivery challans for page $page with size $size")
+        }, *params.toTypedArray()).also {
+            logger.info("[APP] Retrieved ${it.size} delivery challans for page $page with size $size" +
+                    (if (!deliveryOrderIds.isNullOrEmpty()) " filtered by ${deliveryOrderIds.size} order IDs" else ""))
         }
     }
 }

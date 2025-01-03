@@ -1,5 +1,8 @@
 package app.tmsbackend.model
 
+import kotlin.String
+import kotlin.collections.List
+
 data class DeliveryChallan(
     val id: String?,
     val deliveryOrderId: String?,
@@ -31,7 +34,8 @@ data class DeliveryChallanItem(
 data class ListDeliveryChallansInput(
     val search: String? = null,
     val page: Int = 1,
-    val size: Int = 10
+    val size: Int = 10,
+    val deliveryOrderIds: List<String> = emptyList()
 )
 
 data class ListDeliveryChallanOutputRecord(

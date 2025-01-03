@@ -47,7 +47,8 @@ class DeliveryChallanController(
         val deliveryChallans = deliveryChallanService.listDeliveryChallans(
             search = listDeliveryChallansInput.search,
             page = listDeliveryChallansInput.page,
-            size = listDeliveryChallansInput.size
+            size = listDeliveryChallansInput.size,
+            deliveryOrderIds = listDeliveryChallansInput.deliveryOrderIds,
         )
         return ResponseEntity.ok(deliveryChallans)
     }
