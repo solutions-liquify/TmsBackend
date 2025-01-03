@@ -35,7 +35,8 @@ data class ListDeliveryChallansInput(
     val search: String? = null,
     val page: Int = 1,
     val size: Int = 10,
-    val deliveryOrderIds: List<String> = emptyList()
+    val deliveryOrderIds: List<String> = emptyList(),
+    val getAll: Boolean = false
 )
 
 data class ListDeliveryChallanOutputRecord(
