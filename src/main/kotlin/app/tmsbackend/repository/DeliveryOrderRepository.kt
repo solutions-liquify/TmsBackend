@@ -200,7 +200,9 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
             loc.name AS location_name,
             mat.name AS material_name,
             doi.quantity,
-            doi.status
+            doi.status,
+            doi.rate,
+            doi.due_date
         FROM 
             delivery_order_items doi
         JOIN 
@@ -219,7 +221,9 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
                 locationName = rs.getString("location_name"),
                 materialName = rs.getString("material_name"),
                 quantity = rs.getDouble("quantity"),
-                status = rs.getString("status")
+                status = rs.getString("status"),
+                rate = rs.getDouble("rate"),
+                dueDate = rs.getLong("due_date"),
             )
         }, deliveryOrderId)
     }

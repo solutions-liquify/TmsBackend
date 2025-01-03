@@ -8,8 +8,14 @@ data class DeliverOrderItemMetadata(
     val locationName: String,
     val materialName: String,
     val quantity: Double,
-    val status: String
+    val status: String,
+    val rate: Double?,
+    val dueDate: Long?,
+    val deliveredQuantity: Double = 0.0,
+    val inProgressQuantity: Double = 0.0
 )
+
+
 data class DeliveryOrderItem(
     val id: String?,
     val deliveryOrderId: String?,
