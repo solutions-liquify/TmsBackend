@@ -44,8 +44,8 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
             rate = rs.getDouble("rate"),
             dueDate = rs.getLong("due_date"),
             status = rs.getString("status"),
-            deliveredQuantity = 0.0,
-            inProgressQuantity = 0.0
+            deliveredQuantity = rs.getDouble("delivered_quantity"),
+            inProgressQuantity = rs.getDouble("in_progress_quantity")
         )
     }
 
@@ -181,37 +181,85 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
         }
     }
 
+//    fun getDeliveryOrderItems(deliveryOrderId: String): List<DeliveryOrderItem> {
+//        val sql = """
+//            SELECT *
+//            FROM delivery_order_items
+//            WHERE delivery_order_id = ?
+//        """.trimIndent()
+//        return jdbcTemplate.query(sql, { rs, _ -> deliveryOrderItemRowMapper(rs) }, deliveryOrderId)
+//    }
+
     fun getDeliveryOrderItems(deliveryOrderId: String): List<DeliveryOrderItem> {
         val sql = """
-            SELECT *
-            FROM delivery_order_items
-            WHERE delivery_order_id = ?
-        """.trimIndent()
+        SELECT 
+            doi.id,
+            doi.delivery_order_id,
+            doi.district,
+            doi.taluka,
+            doi.location_id,
+            doi.material_id,
+            doi.quantity,
+            doi.rate,
+            doi.due_date,
+            doi.status,
+            COALESCE(SUM(CASE WHEN dc.status = 'delivered' THEN dci.delivering_quantity ELSE 0 END), 0) AS delivered_quantity,
+            COALESCE(SUM(CASE WHEN dc.status = 'in-progress' THEN dci.delivering_quantity ELSE 0 END), 0) AS in_progress_quantity
+        FROM 
+            delivery_order_items doi
+        LEFT JOIN 
+            delivery_challan_items dci 
+            ON doi.id = dci.delivery_order_item_id
+        LEFT JOIN 
+            delivery_challan dc 
+            ON dci.delivery_challan_id = dc.id
+        WHERE 
+            doi.delivery_order_id = ?
+        GROUP BY 
+            doi.id, doi.delivery_order_id, doi.district, doi.taluka, doi.location_id, 
+            doi.material_id, doi.quantity, doi.rate, doi.due_date, doi.status
+    """.trimIndent()
+
         return jdbcTemplate.query(sql, { rs, _ -> deliveryOrderItemRowMapper(rs) }, deliveryOrderId)
     }
 
 
     fun listDeliverOrderItemMetadata(deliveryOrderId: String): List<DeliverOrderItemMetadata> {
         val sql = """
-        SELECT 
-            doi.id,
-            doi.district,
-            doi.taluka,
-            loc.name AS location_name,
-            mat.name AS material_name,
-            doi.quantity,
-            doi.status,
-            doi.rate,
-            doi.due_date
-        FROM 
-            delivery_order_items doi
-        JOIN 
-            locations loc ON doi.location_id = loc.id
-        JOIN 
-            materials mat ON doi.material_id = mat.id
-        WHERE 
-            doi.delivery_order_id = ?
-    """.trimIndent()
+    SELECT 
+        doi.id,
+        doi.district,
+        doi.taluka,
+        loc.name AS location_name,
+        mat.name AS material_name,
+        doi.quantity,
+        doi.status,
+        doi.rate,
+        doi.due_date,
+        COALESCE(SUM(CASE 
+            WHEN dc.status = 'delivered' THEN dci.delivering_quantity 
+            ELSE 0 
+        END), 0) AS delivered_quantity,
+        COALESCE(SUM(CASE 
+            WHEN dc.status = 'in-progress' THEN dci.delivering_quantity 
+            ELSE 0 
+        END), 0) AS in_progress_quantity
+    FROM 
+        delivery_order_items doi
+    JOIN 
+        locations loc ON doi.location_id = loc.id
+    JOIN 
+        materials mat ON doi.material_id = mat.id
+    LEFT JOIN 
+        delivery_challan_items dci ON doi.id = dci.delivery_order_item_id
+    LEFT JOIN 
+        delivery_challan dc ON dci.delivery_challan_id = dc.id
+    WHERE 
+        doi.delivery_order_id = ?
+    GROUP BY 
+        doi.id, doi.district, doi.taluka, loc.name, mat.name, 
+        doi.quantity, doi.status, doi.rate, doi.due_date
+""".trimIndent()
 
         return jdbcTemplate.query(sql, { rs, _ ->
             DeliverOrderItemMetadata(
@@ -224,6 +272,8 @@ class DeliveryOrderRepository(private val jdbcTemplate: JdbcTemplate) {
                 status = rs.getString("status"),
                 rate = rs.getDouble("rate"),
                 dueDate = rs.getLong("due_date"),
+                deliveredQuantity = rs.getDouble("delivered_quantity"),
+                inProgressQuantity = rs.getDouble("in_progress_quantity")
             )
         }, deliveryOrderId)
     }
