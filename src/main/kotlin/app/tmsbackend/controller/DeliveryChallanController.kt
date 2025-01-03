@@ -1,6 +1,7 @@
 package app.tmsbackend.controller
 
 import app.tmsbackend.model.DeliveryChallan
+import app.tmsbackend.model.ListDeliveryChallanOutputRecord
 import app.tmsbackend.model.ListDeliveryChallansInput
 import app.tmsbackend.service.DeliveryChallanService
 import org.springframework.http.ResponseEntity
@@ -42,7 +43,7 @@ class DeliveryChallanController(
     @PostMapping("/list")
     fun listDeliveryChallans(
         @RequestBody listDeliveryChallansInput: ListDeliveryChallansInput
-    ): ResponseEntity<List<DeliveryChallan>> {
+    ): ResponseEntity<List<ListDeliveryChallanOutputRecord>> {
         val deliveryChallans = deliveryChallanService.listDeliveryChallans(
             search = listDeliveryChallansInput.search,
             page = listDeliveryChallansInput.page,

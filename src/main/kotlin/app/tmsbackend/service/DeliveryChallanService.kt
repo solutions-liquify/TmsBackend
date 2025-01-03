@@ -2,6 +2,7 @@ package app.tmsbackend.service
 
 import app.tmsbackend.model.DeliveryChallan
 import app.tmsbackend.model.DeliveryChallanItem
+import app.tmsbackend.model.ListDeliveryChallanOutputRecord
 import app.tmsbackend.repository.DeliveryChallanRepository
 import app.tmsbackend.repository.DeliveryOrderRepository
 import app.tmsbackend.repository.PartyRepository
@@ -88,7 +89,7 @@ class DeliveryChallanService(
         search: String? = null,
         page: Int = 1,
         size: Int = 10
-    ): List<DeliveryChallan> {
+    ): List<ListDeliveryChallanOutputRecord> {
         return deliveryChallanRepository.listDeliveryChallans(
             search = search,
             page = page,

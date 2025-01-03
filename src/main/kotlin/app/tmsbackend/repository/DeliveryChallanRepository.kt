@@ -2,6 +2,7 @@ package app.tmsbackend.repository
 
 import app.tmsbackend.model.DeliveryChallan
 import app.tmsbackend.model.DeliveryChallanItem
+import app.tmsbackend.model.ListDeliveryChallanOutputRecord
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
@@ -132,10 +133,10 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
             """.trimIndent()
             val deliveryChallan = jdbcTemplate.queryForObject(challanSql, { rs, _ -> deliveryChallanRowMapper(rs) }, id) ?: return null
 
-             val items = getDeliveryChallanItems(id)
+            val items = getDeliveryChallanItems(id)
 
             return deliveryChallan.copy(
-                 deliveryChallanItems = items
+                deliveryChallanItems = items
             ).also {
                 logger.info("[APP] Delivery challan found with ID: $id")
             }
@@ -254,9 +255,11 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
                 createDeliveryChallanItem(item)
             }
 
-            logger.info("[APP] Successfully updated delivery challan ${deliveryChallan.id} with " +
-                    "${itemsToCreate.size} new items, ${itemsToUpdate.size} updated items, " +
-                    "and ${itemsToDelete.size} deleted items")
+            logger.info(
+                "[APP] Successfully updated delivery challan ${deliveryChallan.id} with " +
+                        "${itemsToCreate.size} new items, ${itemsToUpdate.size} updated items, " +
+                        "and ${itemsToDelete.size} deleted items"
+            )
 
             return deliveryChallan
 
@@ -270,19 +273,38 @@ class DeliveryChallanRepository(private val jdbcTemplate: JdbcTemplate) {
         search: String? = null,
         page: Int = 1,
         size: Int = 10
-    ): List<DeliveryChallan> {
+    ): List<ListDeliveryChallanOutputRecord> {
         val offset = (page - 1) * size
 
         val sql = """
-            SELECT *
-            FROM delivery_challan
-            WHERE (? IS NULL OR status ILIKE ?)
-            ORDER BY created_at DESC
-            LIMIT ? OFFSET ?
-        """.trimIndent()
+        SELECT 
+            dc.id,
+            dc.delivery_order_id,
+            dc.date_of_challan,
+            dc.status,
+            p.name AS party_name
+        FROM 
+            delivery_challan dc
+        LEFT JOIN 
+            delivery_orders d_order ON dc.delivery_order_id = d_order.id
+        LEFT JOIN 
+            parties p ON d_order.party_id = p.id
+        ORDER BY 
+            dc.created_at DESC
+        LIMIT ? OFFSET ?
+    """.trimIndent()
 
-        return jdbcTemplate.query(sql, { rs, _ -> deliveryChallanRowMapper(rs) }, search, search, size, offset).also {
-            logger.info("[APP] Retrieved ${it.size} delivery challans for page $page with size $size and search $search")
+        return jdbcTemplate.query(sql, { rs, _ ->
+            ListDeliveryChallanOutputRecord(
+                id = rs.getString("id"),
+                deliveryOrderId = rs.getString("delivery_order_id"),
+                dateOfChallan = rs.getLong("date_of_challan"),
+                status = rs.getString("status"),
+                partyName = rs.getString("party_name"),
+                totalDeliveringQuantity = 0.0
+            )
+        }, size, offset).also {
+            logger.info("[APP] Retrieved ${it.size} delivery challans for page $page with size $size")
         }
     }
 }

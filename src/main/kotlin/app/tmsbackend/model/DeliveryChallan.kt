@@ -33,3 +33,12 @@ data class ListDeliveryChallansInput(
     val page: Int = 1,
     val size: Int = 10
 )
+
+data class ListDeliveryChallanOutputRecord(
+    val id: String,
+    val deliveryOrderId: String,
+    val dateOfChallan: Long?,
+    val status: String?,
+    val partyName: String?,
+    val totalDeliveringQuantity: Double = 0.0,
+)
